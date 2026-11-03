@@ -8,22 +8,28 @@
 namespace fs = std::filesystem;
 
 // 角点排序：左下、右下、右上、左上（基于 OpenCV 图像坐标系：原点左上，y 向下）
-std::vector<cv::Point2f> orderCorners(const cv::Point2f pts[4]) {
+std::vector<cv::Point2f> orderCorners(const cv::Point2f pts[4]) 
+{
     std::vector<cv::Point2f> v(pts, pts + 4);
     // 按 y 坐标降序：y 越大越靠下
-    std::sort(v.begin(), v.end(), [](const cv::Point2f& a, const cv::Point2f& b) {
+    std::sort(v.begin(), v.end(), [](const cv::Point2f& a, const cv::Point2f& b) 
+    {
         return a.y > b.y;
     });
     // v[0], v[1] 是下方两点；v[2], v[3] 是上方两点
     cv::Point2f bottomLeft, bottomRight, topLeft, topRight;
     if (v[0].x < v[1].x) {
         bottomLeft = v[0]; bottomRight = v[1];
-    } else {
+    } 
+    else 
+    {
         bottomLeft = v[1]; bottomRight = v[0];
     }
     if (v[2].x < v[3].x) {
         topLeft = v[2]; topRight = v[3];
-    } else {
+    } 
+    else 
+    {
         topLeft = v[3]; topRight = v[2];
     }
     return {bottomLeft, bottomRight, topRight, topLeft};
@@ -45,20 +51,25 @@ int main() {
 
     // 收集输入目录中的 PNG 文件
     std::vector<fs::path> pngFiles;
-    for (const auto& entry : fs::directory_iterator(inputDir)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".png") {
+    for (const auto& entry : fs::directory_iterator(inputDir)) 
+    {
+        if (entry.is_regular_file() && entry.path().extension() == ".png") 
+        {
             pngFiles.push_back(entry.path());
         }
     }
     // 按文件名升序排序
-    std::sort(pngFiles.begin(), pngFiles.end(), [](const fs::path& a, const fs::path& b) {
+    std::sort(pngFiles.begin(), pngFiles.end(), [](const fs::path& a, const fs::path& b) 
+    {
         return a.filename().string() < b.filename().string();
     });
 
-    for (const auto& filePath : pngFiles) {
+    for (const auto& filePath : pngFiles) 
+    {
         std::string filename = filePath.filename().string();
         cv::Mat img = cv::imread(filePath.string(), cv::IMREAD_COLOR);
-        if (img.empty()) {
+        if (img.empty()) 
+        {
             std::cerr << "无法读取: " << filename << std::endl;
             continue;
         }
@@ -81,7 +92,8 @@ int main() {
 
         std::vector<std::vector<cv::Point2i>> detectedRects;
 
-        for (const auto& contour : contours) {
+        for (const auto& contour : contours) 
+        {
             // 面积过滤：过滤太小或太大的噪声
             double area = cv::contourArea(contour);
             if (area < 500) continue;  // 可根据实际图片调整阈值
@@ -103,12 +115,14 @@ int main() {
 
             // 转换为考核坐标
             std::vector<cv::Point2i> examPts;
-            for (const auto& p : ordered) {
+            for (const auto& p : ordered) 
+            {
                 examPts.push_back(toExamCoord(p, imgHeight));
             }
 
             // 绘制绿色边框（在原始 OpenCV 图像上直接绘制，不需要坐标转换）
-            for (int j = 0; j < 4; ++j) {
+            for (int j = 0; j < 4; ++j) 
+            {
                 cv::line(img, ordered[j], ordered[(j + 1) % 4],
                          cv::Scalar(0, 255, 0), 2);
             }
@@ -122,13 +136,16 @@ int main() {
 
         // 终端输出
         std::cout << filename << ": ";
-        if (detectedRects.empty()) {
+        if (detectedRects.empty()) 
+        {
             std::cout << "null";
         } else {
-            for (size_t i = 0; i < detectedRects.size(); ++i) {
+            for (size_t i = 0; i < detectedRects.size(); ++i) 
+            {
                 if (i > 0) std::cout << " | ";
                 std::cout << "rect" << (i + 1) << " ";
-                for (int j = 0; j < 4; ++j) {
+                for (int j = 0; j < 4; ++j) 
+                {
                     std::cout << "(" << detectedRects[i][j].x << ", "
                               << detectedRects[i][j].y << ")";
                     if (j < 3) std::cout << "; ";
